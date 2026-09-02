@@ -1,70 +1,82 @@
 import os
+import gspread
+from google.oauth2.service_account import Credentials
 import requests
-from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 
-def run_test():
-    print("==================================================")
-    print("            TES KONEKSI API BSRE")
-    print("==================================================")
+# Memuat variabel dari file .env
+load_dotenv()
 
-    # 1. Load config
-    load_dotenv()
-    BASE_URL = os.getenv("BSRE_BASE_URL")
-    USERNAME = os.getenv("BSRE_USERNAME")
-    PASSWORD = os.getenv("BSRE_PASSWORD")
+# Mengambil konfigurasi eSign (BSRe) dari .env
+BSRE_BASE_URL = os.getenv('BSRE_BASE_URL')
+BSRE_USERNAME = os.getenv('BSRE_USERNAME')
+BSRE_PASSWORD = os.getenv('BSRE_PASSWORD')
 
-    # 2. Validasi Config
-    if not BASE_URL or not USERNAME or not PASSWORD:
-        print("❌ ERROR: Konfigurasi di file .env belum lengkap!")
-        print(f" - BSRE_BASE_URL: {'Terisi' if BASE_URL else 'KOSONG'}")
-        print(f" - BSRE_USERNAME: {'Terisi' if USERNAME else 'KOSONG'}")
-        print(f" - BSRE_PASSWORD: {'Terisi' if PASSWORD else 'KOSONG'}")
-        return
+# Mengambil konfigurasi Google Sheets dari .env
+GOOGLE_CREDENTIALS = os.getenv('GOOGLE_CREDENTIALS')
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
+WORKSHEET_NAME = os.getenv('WORKSHEET_NAME')
 
-    print("✅ File .env berhasil dibaca.")
-    print(f"🔗 Target URL: {BASE_URL}")
-    print("-" * 50)
 
-    # 3. Setup Session
-    session = requests.Session()
-    session.auth = HTTPBasicAuth(USERNAME, PASSWORD)
-    session.headers.update({"Accept": "application/json"})
-
-    # 4. Request Menggunakan NIK Dummy
-    dummy_nik = "3213030201670001" 
-    url_test = f"{BASE_URL}/api/user/status/{dummy_nik}"
-    
-    print(f"Mencoba ping ke endpoint: /api/user/status/{dummy_nik} ...\n")
-
+def cek_koneksi_google_sheets():
+    print("--- Memeriksa Koneksi Google Spreadsheet API ---")
     try:
-        response = session.get(url_test, timeout=15)
+        if not GOOGLE_CREDENTIALS or not SPREADSHEET_ID:
+            raise ValueError("GOOGLE_CREDENTIALS atau SPREADSHEET_ID belum lengkap di file .env")
+            
+        scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        creds = Credentials.from_service_account_file(GOOGLE_CREDENTIALS, scopes=scopes)
+        client = gspread.authorize(creds)
         
-        print(f"HTTP Status Code: {response.status_code}")
-        print(f"Isi Response: {response.text}")
-        print("-" * 50)
-
-        if response.status_code == 200:
-            print("✅ KONEKSI SUKSES: Auth valid dan NIK Dummy ternyata ditemukan.")
-        elif response.status_code == 404:
-            print("✅ KONEKSI SUKSES: Kredensial benar. (Mendapat 404 wajar karena NIK Dummy tidak terdaftar).")
-        elif response.status_code == 401:
-            print("❌ KONEKSI GAGAL (401): Unauthorized. Username atau Password di .env salah!")
-        elif response.status_code == 403:
-            print("❌ KONEKSI GAGAL (403): Forbidden. IP Anda mungkin belum di-whitelist oleh BSrE.")
-        else:
-            print(f"⚠️ KONEKSI ABNORMAL: Mendapat response HTTP {response.status_code}.")
-
-    except requests.exceptions.ConnectionError:
-        print("❌ KONEKSI GAGAL: Tidak dapat terhubung ke server (Connection Error).")
-        print("   - Pastikan URL benar (HTTPS/HTTP).")
-        print("   - Pastikan Anda terkoneksi ke jaringan/VPN yang diizinkan.")
-    except requests.exceptions.Timeout:
-        print("❌ KONEKSI GAGAL: Request Timeout (Server tidak merespons dalam 15 detik).")
+        spreadsheet = client.open_by_key(SPREADSHEET_ID)
+        print(f"[SUKSES] Berhasil terhubung ke Google Spreadsheet.")
+        print(f"         Nama Dokumen: '{spreadsheet.title}'")
+        
+        # Cek ketersediaan worksheet jika ditentukan
+        if WORKSHEET_NAME:
+            try:
+                worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
+                print(f"[SUKSES] Worksheet '{WORKSHEET_NAME}' ditemukan (Total baris: {worksheet.row_count}).\n")
+            except gspread.exceptions.WorksheetNotFound:
+                print(f"[PERINGATAN] Worksheet '{WORKSHEET_NAME}' tidak ditemukan di dalam spreadsheet.\n")
     except Exception as e:
-        print(f"❌ ERROR TIDAK TERDUGA: {str(e)}")
+        print(f"[GAGAL] Gagal terhubung ke Google Spreadsheet.")
+        print(f"        Detail Error: {e}\n")
 
-    print("==================================================")
+
+def cek_koneksi_bsre():
+    print("--- Memeriksa Koneksi eSign Client API (BSRe) ---")
+    try:
+        if not BSRE_BASE_URL:
+            raise ValueError("BSRE_BASE_URL belum diatur di file .env")
+            
+        # Biasanya autentikasi BSRe menggunakan Basic Auth atau form login (menyesuaikan endpoint standar)
+        # Di sini kita contohkan menggunakan requests dengan Basic Auth berdasarkan username & password
+        auth = (BSRE_USERNAME, BSRE_PASSWORD) if BSRE_USERNAME and BSRE_PASSWORD else None
+        
+        # Menguji koneksi ke base URL atau endpoint status/login (sesuaikan path endpoint BSRe Anda, misal /api/v1/status)
+        endpoint = f"{BSRE_BASE_URL.rstrip('/')}"
+        
+        response = requests.get(endpoint, auth=auth, timeout=10)
+        
+        # Menerima status kode sukses atau redirect yang menandakan server aktif
+        if response.status_code < 500:
+            print(f"[SUKSES] Berhasil terhubung ke Server eSign (BSRe).")
+            print(f"         Base URL    : {BSRE_BASE_URL}")
+            print(f"         Status Code : {response.status_code}\n")
+        else:
+            print(f"[PERINGATAN] Server eSign merespons dengan error server.")
+            print(f"            Status Code: {response.status_code}\n")
+            
+    except requests.exceptions.RequestException as e:
+        print(f"[GAGAL] Gagal terhubung ke jaringan/server eSign BSRe.")
+        print(f"        Detail Error: {e}\n")
+    except ValueError as e:
+        print(f"[GAGAL] Konfigurasi BSRe tidak lengkap.")
+        print(f"        Detail Error: {e}\n")
+
 
 if __name__ == "__main__":
-    run_test()
+    print("=== PROGRAM PENGECEKAN KONEKSI API BSRE & GOOGLE SHEETS ===\n")
+    cek_koneksi_google_sheets()
+    cek_koneksi_bsre()
