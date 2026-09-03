@@ -27,21 +27,6 @@ USERNAME = os.getenv("BSRE_USERNAME")
 PASSWORD = os.getenv("BSRE_PASSWORD")
 
 
-# # ============================================================
-# # GOOGLE SHEETS
-# # ============================================================
-
-# GOOGLE_CREDENTIALS = "google_credentials.json"
-
-# SPREADSHEET_ID = "1LPavesE0NYbdrLZ-h5em1loc-b5foIHRWbGQ_1uP1nQ"
-
-
-# # ============================================================
-# # WORKSHEET
-# # ============================================================
-
-# WORKSHEET_NAME = "Data ASN Merge"
-
 # ============================================================
 # GOOGLE SHEETS & SPREADSHEET KONFIGURASI
 # ============================================================
@@ -337,6 +322,7 @@ def proses_google_sheet():
     print("Hanya row terlihat yang akan dicek. Row hidden TIDAK akan diproses.\n")
 
     update_cells = []
+    row_yang_diubah = set()
 
     # Statistik Profile
     jumlah_sukses = 0
@@ -383,12 +369,15 @@ def proses_google_sheet():
             time.sleep(REQUEST_DELAY)
             continue
 
+        row_updated_in_this_iter = False
+
         # ====================================================
         # UPDATE STATUS (KOLOM O & P)
         # ====================================================
         if hasil_status["update"]:
             update_cells.append({"range": f"O{nomor_baris}", "values": [[hasil_status["status_pengguna"]]]})
             update_cells.append({"range": f"P{nomor_baris}", "values": [[hasil_status["status_sertifikat"]]]})
+            row_updated_in_this_iter = True
             
             status_api = hasil_status["status_api"]
             if status_api == "ISSUE": jumlah_issue += 1
@@ -410,16 +399,22 @@ def proses_google_sheet():
             update_cells.append({"range": f"Q{nomor_baris}", "values": [[hasil_profile["tanggal_terbit"]]]})
             update_cells.append({"range": f"R{nomor_baris}", "values": [[hasil_profile["tanggal_berakhir"]]]})
             jumlah_sukses += 1
+            row_updated_in_this_iter = True
         elif status_prof == "NO_CERTIFICATE":
             jumlah_tidak_ada_sertifikat += 1
             update_cells.append({"range": f"Q{nomor_baris}", "values": [[""]]})
             update_cells.append({"range": f"R{nomor_baris}", "values": [[""]]})
+            row_updated_in_this_iter = True
         elif status_prof == "NOT_FOUND":
             jumlah_tidak_ditemukan += 1
             update_cells.append({"range": f"Q{nomor_baris}", "values": [[""]]})
             update_cells.append({"range": f"R{nomor_baris}", "values": [[""]]})
+            row_updated_in_this_iter = True
         elif status_prof == "NO_CERTIFICATE_DATE":
             jumlah_tanggal_tidak_valid += 1
+
+        if row_updated_in_this_iter:
+            row_yang_diubah.add(nomor_baris)
 
         time.sleep(REQUEST_DELAY)
 
@@ -430,7 +425,6 @@ def proses_google_sheet():
 
     if update_cells:
         worksheet.batch_update(update_cells)
-        # Dibagi 4 jika semua sel (O, P, Q, R) di-update, dll. Kita hitung saja jumlah blok operasi.
         print(f"Berhasil mengupdate {len(update_cells)} cell operations.")
     else:
         print("Tidak ada data yang perlu diupdate.")
@@ -443,7 +437,8 @@ def proses_google_sheet():
     print("=" * 70 + "\n")
 
     print(f"Row terlihat             : {total_terlihat}")
-    print(f"Row hidden               : {total_hidden}\n")
+    print(f"Row hidden               : {total_hidden}")
+    print(f"Total row yang diubah    : {len(row_yang_diubah)}\n")
     
     print("--- STATISTIK STATUS ---")
     print(f"ISSUE              : {jumlah_issue}")
