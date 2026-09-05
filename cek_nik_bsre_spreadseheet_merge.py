@@ -199,7 +199,7 @@ def cek_profile_sertifikat(nik):
             tanggal_expired = certificate_terbaru["tanggal"]
             tanggal_issue = tanggal_expired - relativedelta(years=2)
 
-            # Format YYYY-MM-DD agar dibaca sebagai tanggal oleh Google Sheets (tipe data aslinya)
+            # Format tetap YYYY-MM-DD agar Google membaca nilainya sebagai Date yang valid
             tanggal_terbit = tanggal_issue.strftime("%Y-%m-%d")
             tanggal_berakhir = tanggal_expired.strftime("%Y-%m-%d")
 
@@ -425,15 +425,14 @@ def proses_google_sheet():
     print("\nMengupdate Google Spreadsheet...\n")
 
     if update_cells:
-        # Gunakan USER_ENTERED agar string dibaca sebagai tipe data Date
         worksheet.batch_update(update_cells, value_input_option="USER_ENTERED")
         
-        # Atur format UI Google Sheet ke format: 12-Agu-26 (dd-mmm-yy)
+        # PERUBAHAN: Set format UI ke dd-mmm-yyyy (contoh: 12-Agu-2026)
         try:
             worksheet.format("Q2:R", {
                 "numberFormat": {
                     "type": "DATE",
-                    "pattern": "dd-mmm-yy"
+                    "pattern": "dd-mmm-yyyy"
                 }
             })
         except Exception as e:
