@@ -1,0 +1,81 @@
+BSRE FILTERED CERTIFICATE SYNC
+======================================================================
+Start Time : 11-Sep-2026_19:19:44
+Log File   : /Users/sandi/Dev/CekUser-BSrE/logs/cekNIK_BSrE_2026-09-11_191944.log
+
+======================================================================
+ CEK STATUS DAN TANGGAL SERTIFIKAT ELEKTRONIK BSrE
+======================================================================
+
+Menghubungkan ke Google Spreadsheet...
+Berhasil terhubung.
+
+Mengambil data spreadsheet...
+Mendeteksi row yang terlihat...
+
+Total row data       : 18405
+Total row diproses   : 14
+Row terlihat         : 14
+Row hidden           : 18391
+Mode                 : ROW TERLIHAT / HASIL FILTER
+Update               : HANYA CELL O/P/Q/R YANG BERUBAH
+
+Hanya row terlihat yang dicek. Row hidden oleh filter atau user TIDAK diproses.
+
+
+Mengupdate Google Spreadsheet...
+
+Tidak ada perubahan data. Tidak ada cell O/P/Q/R yang diupdate.
+
+======================================================================
+ HASIL PENGECEKAN
+======================================================================
+
+Total row data            : 18405
+Total row diproses        : 14
+Row terlihat              : 14
+Row hidden                : 18391
+Total row berubah         : 0
+Total row tanpa perubahan : 14
+Total cell berubah        : 0
+
+--- PERUBAHAN CELL ---
+Status Pengguna (O)       : 0
+Status Sertifikat (P)     : 0
+Tanggal terbit (Q)        : 0
+Tanggal berakhir (R)      : 0
+
+--- STATISTIK STATUS ---
+ISSUE                     : 14
+EXPIRED                   : 0
+REVOKE                    : 0
+RENEW                     : 0
+NO_CERTIFICATE            : 0
+NOT_REGISTERED            : 0
+Tidak diubah              : 0
+
+--- STATISTIK PROFILE ---
+Tanggal ditemukan         : 14
+Tidak ada sertifikat      : 0
+NIK tidak ditemukan       : 0
+Tanggal tidak valid       : 0
+Profile tanpa data        : 0
+
+--- DATA LAINNYA ---
+NIK kosong                : 0
+Error gabungan            : 0
+
+Kolom O = Status Pengguna
+Kolom P = Status Sertifikat
+Kolom Q = Tanggal terbit
+Kolom R = Tanggal berakhir
+
+Mode  : ROW TERLIHAT / HASIL FILTER
+Write : HANYA CELL O/P/Q/R YANG BERUBAH
+Row hidden oleh filter atau user tidak diproses.
+
+
+End Time   : 11-Sep-2026_19:20:00
+Duration   : 00:00:15
+BSRE Sync SUCCESS : 2026-09-11 19:20:00
+============================================================

@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+from gspread.utils import ValueInputOption
 
 
 # ============================================================
@@ -337,6 +338,12 @@ def koneksi_google():
     )
 
     client = gspread.authorize(credentials)
+    if SPREADSHEET_ID is None:
+        raise ValueError("\nSPREADSHEET_ID belum diisi pada file .env.")
+
+    if WORKSHEET_NAME is None:
+        raise ValueError("\nWORKSHEET_NAME belum diisi pada file .env.")
+
     spreadsheet = client.open_by_key(SPREADSHEET_ID)
     worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
 
@@ -652,7 +659,7 @@ def proses_google_sheet():
     if header_updates:
         worksheet.batch_update(
             header_updates,
-            value_input_option="USER_ENTERED",
+            value_input_option=ValueInputOption.user_entered,
         )
 
     # ========================================================
@@ -927,7 +934,7 @@ def proses_google_sheet():
     if update_cells:
         worksheet.batch_update(
             update_cells,
-            value_input_option="USER_ENTERED",
+            value_input_option=ValueInputOption.user_entered,
         )
 
         # Format tanggal hanya diperlukan jika Q/R memang berubah.
