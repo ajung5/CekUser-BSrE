@@ -115,7 +115,7 @@ def mulai_logging():
 
     waktu_mulai = datetime.now()
     nama_file = (
-        "cek_nik_bsre_spreadseheet_merge_"
+        "cekNIK_BSrE_"
         f"{waktu_mulai.strftime('%Y-%m-%d_%H%M%S')}.log"
     )
     path_log = os.path.join(LOG_DIR, nama_file)
